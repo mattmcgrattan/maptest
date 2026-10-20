@@ -11,24 +11,24 @@
     "use strict";
 
     const DATA = window.MONET_PLACE_MAP_DATA || {
-        default_place_id: "letters.place:434",
+        default_place_id: "letters.place:448",
         places: {},
         letters: [],
         rouen_db_stubs: [],
     };
 
     const COLORS = {
-        primary: "#cd3238",       // Crimson from `map-editor.js` read-only latlong marker
-        primaryRing: "#fde8e8",
-        outbound: "#007d7e",      // Monet Admin Teal (`map-editor.js` highlight color)
-        inbound: "#d97706",       // Warm Amber for contrasting inbound flow
-        bidirectional: "#1e293b", // Deep Slate for places with both inbound & outbound
-        inferred: "#0f766e",
-        boundary: "#64748b",
+        primary: "#cd3238",       // Highlighted primary place dot (crimson accent)
+        primaryRing: "#fefbf4",   // --color-monet-page
+        outbound: "#19599a",      // --color-monet-link (Monet Cobalt Blue)
+        inbound: "#b45309",       // Warm Ochre / Sienna for contrasting inbound flow
+        bidirectional: "#124574", // --color-monet-deep-blue
+        inferred: "#19599a",
+        boundary: "#918477",      // --color-monet-control-border
     };
 
     const state = {
-        selectedPlaceId: DATA.default_place_id || "letters.place:434",
+        selectedPlaceId: DATA.default_place_id || "letters.place:448",
         showOutbound: true,       // Letters Sent FROM primary place
         showInbound: true,        // Letters Sent TO primary place
         includeDbStubs: true,     // Include the 6 DB stub letters for Rouen (28 From total)
@@ -779,7 +779,7 @@
         const primaryPlace = DATA.places[state.selectedPlaceId];
         if (!primaryPlace) return;
 
-        // Update header summary
+        // Update header summary & At a Glance metadata
         document.getElementById("primary-place-title").textContent =
             primaryPlace.name;
         document.getElementById("primary-place-meta").textContent = `${
@@ -787,6 +787,64 @@
         }${primaryPlace.country_code || ""} · TGN: ${
             primaryPlace.tgn_id || "N/A"
         } · (${primaryPlace.lat.toFixed(4)}, ${primaryPlace.lng.toFixed(4)})`;
+
+        const setElText = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        setElText("meta-region", primaryPlace.region || "—");
+        setElText("meta-country", primaryPlace.country_code || "—");
+        setElText(
+            "meta-coords",
+            `${primaryPlace.lat.toFixed(4)}° N, ${primaryPlace.lng.toFixed(4)}° E`
+        );
+        setElText("meta-tgn", primaryPlace.tgn_id || "—");
+        const tgnLink = document.getElementById("sources-tgn-link");
+        if (tgnLink && primaryPlace.tgn_id) {
+            tgnLink.textContent = primaryPlace.tgn_id;
+            tgnLink.href = `http://vocab.getty.edu/page/tgn/${primaryPlace.tgn_id}`;
+        }
+        setElText("sources-label-preferred", primaryPlace.name);
+
+        // Connected unique places count & active year range
+        const uniqueConnectedIds = new Set([
+            ...network.outboundRoutes.map((r) => r.otherPlaceId),
+            ...network.inboundRoutes.map((r) => r.otherPlaceId),
+        ]);
+        const allYears = [
+            ...network.outboundLetters,
+            ...network.inboundLetters,
+        ]
+            .map((l) => l.year)
+            .filter(Boolean);
+        const yearRange =
+            allYears.length > 0
+                ? `${Math.min(...allYears)}–${Math.max(...allYears)}`
+                : "—";
+
+        setElText("stat-from-count", network.outboundLetters.length);
+        setElText("stat-to-count", network.inboundLetters.length);
+        setElText("stat-connected-places", uniqueConnectedIds.size);
+        setElText("stat-active-range", yearRange);
+
+        setElText(
+            "preset-both",
+            `ALL DIRECTIONS (${
+                network.outboundLetters.length + network.inboundLetters.length
+            })`
+        );
+        setElText(
+            "preset-from",
+            `FROM ${primaryPlace.name.toUpperCase()} (${
+                network.outboundLetters.length
+            })`
+        );
+        setElText(
+            "preset-to",
+            `TO ${primaryPlace.name.toUpperCase()} (${
+                network.inboundLetters.length
+            })`
+        );
 
         // Update counts on From / To toggle cards
         const outPlottedCount = network.outboundRoutes.reduce(

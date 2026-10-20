@@ -1,6 +1,6 @@
 // Auto-generated from Typesense by extract_place_letters_typesense.py
 window.MONET_PLACE_MAP_DATA = {
-  "default_place_id": "letters.place:434",
+  "default_place_id": "letters.place:448",
   "typesense_endpoint": "http://monet-letters.localhost/_typesense/collections/letters/documents/search",
   "places": {
     "letters.place:448": {

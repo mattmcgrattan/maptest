@@ -3,9 +3,17 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Place Correspondence Map Prototype — Rouen (Monet Letters)</title>
+    <title>Rouen — The Monet Letters Project (Place Map Prototype)</title>
 
-    <!-- Leaflet 1.9.4 CSS (matching Wagtail Admin Leaflet setup) -->
+    <!-- Google Fonts matching `frontend/src/styles.css` (Cormorant Garamond & Work Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet"
+    />
+
+    <!-- Leaflet 1.9.4 CSS -->
     <link
         rel="stylesheet"
         href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
@@ -13,19 +21,49 @@
     />
 
     <style>
+        /* Exact design tokens from `frontend/src/theme.css` */
         :root {
-            --bg-paper: #f8f7f4;
-            --bg-panel: #ffffff;
-            --ink-primary: #1e293b;
-            --ink-secondary: #475569;
-            --ink-muted: #64748b;
-            --border-subtle: #e2e8f0;
+            /* Backgrounds */
+            --color-monet-page: #fefbf4;
+            --color-monet-section: #f6f3ec;
+            --color-monet-panel: #ebe4db;
+            --color-monet-card: #ffffff;
+
+            /* Text and actions */
+            --color-monet-link: #19599a;
+            --color-monet-logo: #83a3c4;
+            --color-monet-text: #1c1c1e;
+            --color-monet-text-secondary: #606060;
+            --color-monet-text-subtle: #606060;
+            --color-monet-deep-blue: #124574;
+            --color-monet-soft-blue: #83a3c4;
+            --color-monet-pale-blue: #e8eff5;
+            --color-monet-pale-yellow: #fdfcc1;
+            --color-monet-pink: #f3e8ee;
+
+            /* Borders & aliases */
+            --color-monet-paper: #fefbf4;
+            --color-monet-surface: #f6f3ec;
+            --color-monet-wash: #ebe4db;
+            --color-monet-ink: #1c1c1e;
+            --color-monet-muted: #606060;
+            --color-monet-border: #d8cfc3;
+            --color-monet-control-border: #918477;
+
+            /* Map directional colors harmonized with Monet theme */
             --primary-crimson: #cd3238;
-            --outbound-teal: #007d7e;
-            --outbound-teal-soft: #e6f4f4;
-            --inbound-amber: #d97706;
-            --inbound-amber-soft: #fef3c7;
-            --bi-slate: #1e293b;
+            --outbound-blue: #19599a;
+            --outbound-blue-soft: #e8eff5;
+            --inbound-ochre: #b45309;
+            --inbound-ochre-soft: #fef3c7;
+
+            /* Typography */
+            --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+            --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+
+            /* Radii */
+            --radius-monet-card: 0.75rem;
+            --radius-monet-pill: 9999px;
         }
 
         * {
@@ -35,118 +73,132 @@
         body {
             margin: 0;
             padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg-paper);
-            color: var(--ink-primary);
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            font-family: var(--font-sans);
+            background-color: var(--color-monet-page);
+            color: var(--color-monet-text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
         }
 
-        /* Top Navigation / Prototype Header */
-        .top-bar {
+        /* =================================================================
+         * 1. SITE HEADER (Matches `frontend/src/components/navigation/SiteHeader.tsx`)
+         * ================================================================= */
+        .site-header {
+            background-color: var(--color-monet-section);
+            border-bottom: 1px solid var(--color-monet-border);
+            min-height: 81px;
+            padding: 12px 40px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 24px;
-            background: #1e293b;
-            color: #f8fafc;
-            border-bottom: 1px solid #334155;
-            flex-shrink: 0;
-            gap: 16px;
-        }
-
-        .brand-group {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .brand-pill {
-            background: var(--primary-crimson);
-            color: #fff;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 0.06em;
-            text-transform: uppercase;
-            padding: 4px 9px;
-            border-radius: 4px;
-        }
-
-        .brand-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin: 0;
-        }
-
-        .brand-subtitle {
-            font-size: 12.5px;
-            color: #94a3b8;
-        }
-
-        .top-controls {
-            display: flex;
-            align-items: center;
-            gap: 14px;
+            gap: 24px;
             flex-wrap: wrap;
         }
 
+        .site-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-monet-link);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .site-brand svg {
+            height: 20px;
+            width: auto;
+            display: block;
+        }
+
+        .header-center-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--color-monet-card);
+            border: 1px solid var(--color-monet-border);
+            border-radius: 18px;
+            padding: 5px 16px;
+            height: 44px;
+        }
+
         .place-picker-label {
-            font-size: 12.5px;
-            color: #cbd5e1;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--color-monet-text-secondary);
             display: flex;
             align-items: center;
             gap: 8px;
+            white-space: nowrap;
         }
 
         .place-select {
-            background: #0f172a;
-            color: #f8fafc;
-            border: 1px solid #475569;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 13px;
-            font-weight: 500;
+            border: none;
+            background: transparent;
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--color-monet-link);
             cursor: pointer;
+            outline: none;
+            padding-right: 8px;
         }
 
-        .btn-fit {
-            background: #334155;
-            color: #f8fafc;
-            border: 1px solid #475569;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 12.5px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.15s;
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 24px;
         }
 
-        .btn-fit:hover {
-            background: #475569;
+        .site-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .site-nav-links a {
+            color: var(--color-monet-ink);
+            text-decoration: none;
+        }
+
+        .site-nav-links a:hover,
+        .site-nav-links a.active {
+            color: var(--color-monet-link);
         }
 
         .status-badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 12px;
-            padding: 5px 10px;
-            border-radius: 999px;
-            font-weight: 500;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 5px 12px;
+            border-radius: var(--radius-monet-pill);
+            border: 1px solid var(--color-monet-border);
+            background: var(--color-monet-card);
+            color: var(--color-monet-text-secondary);
         }
 
         .status-live {
-            background: rgba(16, 185, 129, 0.16);
-            color: #6ee7b7;
-            border: 1px solid rgba(16, 185, 129, 0.35);
+            border-color: var(--color-monet-link);
+            background: var(--color-monet-pale-blue);
+            color: var(--color-monet-link);
         }
 
         .status-snapshot {
-            background: rgba(56, 189, 248, 0.15);
-            color: #7dd3fc;
-            border: 1px solid rgba(56, 189, 248, 0.35);
+            border-color: var(--color-monet-border);
+            background: var(--color-monet-card);
+            color: var(--color-monet-text-secondary);
         }
 
         .status-dot {
@@ -156,124 +208,361 @@
             background: currentColor;
         }
 
-        /* Main Workspace Split Layout */
-        .workspace {
-            display: flex;
-            flex: 1;
-            min-height: 0;
+        /* =================================================================
+         * 2. ENTITY HEADER & AT A GLANCE (Matches `EntityHeader.tsx` & `EntityMetadata.tsx`)
+         * ================================================================= */
+        .entity-hero-section {
+            background-color: var(--color-monet-section);
+            border-bottom: 1px solid var(--color-monet-border);
+            padding: 48px 6vw;
         }
 
-        .sidebar {
-            width: 430px;
-            background: var(--bg-panel);
-            border-right: 1px solid var(--border-subtle);
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            flex-shrink: 0;
-            z-index: 20;
+        .entity-hero-container {
+            max-width: 1740px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(0, 2.2fr) minmax(18rem, 1fr);
+            gap: 32px;
+            align-items: center;
         }
 
-        .sidebar-section {
-            padding: 18px 20px;
-            border-bottom: 1px solid var(--border-subtle);
+        @media (max-width: 960px) {
+            .entity-hero-container {
+                grid-template-columns: 1fr;
+            }
         }
 
-        .place-header-eyebrow {
-            font-size: 11px;
-            font-weight: 700;
+        .entity-eyebrow {
+            color: var(--color-monet-text-subtle);
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.08em;
-            color: var(--primary-crimson);
-            margin-bottom: 4px;
+            margin: 0 0 14px 0;
+        }
+
+        .entity-title {
+            font-family: var(--font-serif);
+            font-size: 3rem;
+            line-height: 1.1;
+            font-weight: 600;
+            color: var(--color-monet-link);
+            margin: 0;
+        }
+
+        .entity-subtitle-meta {
+            font-family: var(--font-serif);
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--color-monet-ink);
+            margin: 14px 0 0 0;
+        }
+
+        .entity-supporting {
+            border-top: 1px solid var(--color-monet-border);
+            margin-top: 28px;
+            padding-top: 24px;
+        }
+
+        .entity-description {
+            font-size: 1rem;
+            line-height: 1.5;
+            color: var(--color-monet-text);
+            margin: 0 0 14px 0;
+            max-width: 48rem;
+        }
+
+        .entity-tags {
             display: flex;
-            align-items: center;
-            gap: 6px;
+            flex-wrap: wrap;
+            gap: 10px;
+            list-style: none;
+            padding: 0;
+            margin: 0;
         }
 
-        .place-header-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin: 0 0 4px 0;
-            color: var(--ink-primary);
-        }
-
-        .place-header-meta {
-            font-size: 12.5px;
-            color: var(--ink-muted);
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        }
-
-        /* Direction Filter Controls */
-        .section-heading {
-            font-size: 12px;
-            font-weight: 700;
+        .entity-tag {
+            border: 1px solid var(--color-monet-link);
+            color: var(--color-monet-link);
+            height: 32px;
+            padding: 0 14px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--ink-secondary);
-            margin: 0 0 10px 0;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        /* At a Glance card (`EntityMetadata.tsx`) */
+        .entity-metadata-card {
+            background-color: var(--color-monet-card);
+            border: 1px solid var(--color-monet-border);
+            border-radius: var(--radius-monet-card);
+            padding: 28px 32px;
+        }
+
+        .entity-metadata-title {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            line-height: 1.2;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+            color: var(--color-monet-ink);
+        }
+
+        .entity-metadata-dl {
+            margin: 0;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 24px;
+        }
+
+        .entity-metadata-item {
+            border-bottom: 1px solid var(--color-monet-border);
+            padding: 12px 0;
+        }
+
+        .entity-metadata-item:nth-last-child(-n + 2) {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .entity-metadata-dt {
+            color: var(--color-monet-text-subtle);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .entity-metadata-dd {
+            color: var(--color-monet-text-subtle);
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin: 4px 0 0 0;
+        }
+
+        /* =================================================================
+         * 3. CORRESPONDENCE SUMMARY STATS (Matches `CorrespondenceSummary.tsx`)
+         * ================================================================= */
+        .correspondence-summary {
+            background-color: var(--color-monet-surface);
+            border-bottom: 1px solid var(--color-monet-border);
+        }
+
+        .correspondence-header {
+            max-width: 1740px;
+            margin: 0 auto;
+            padding: 36px 6vw 16px 6vw;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .correspondence-heading {
+            font-family: var(--font-serif);
+            font-size: 2.125rem;
+            font-weight: 600;
+            color: var(--color-monet-link);
+            margin: 0;
+            line-height: 1.15;
+        }
+
+        .correspondence-subtitle {
+            margin: 4px 0 0 0;
+            font-size: 1rem;
+            color: var(--color-monet-text);
+        }
+
+        .correspondence-stats-grid {
+            max-width: 1740px;
+            margin: 0 auto;
+            padding: 16px 6vw 28px 6vw;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        @media (max-width: 800px) {
+            .correspondence-stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+        }
+
+        .correspondence-stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 76px;
+            padding: 0 12px;
+            text-align: center;
+            border-left: 1px solid var(--color-monet-border);
+        }
+
+        .correspondence-stat:first-child {
+            border-left: none;
+        }
+
+        .correspondence-stat-value {
+            font-family: var(--font-serif);
+            font-size: 2.15rem;
+            line-height: 1;
+            font-weight: 600;
+            color: var(--color-monet-link);
+        }
+
+        .correspondence-stat-label {
+            margin-top: 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-monet-muted);
+        }
+
+        /* =================================================================
+         * 4. MAP & LETTERS EXPLORER SECTION (Matches `LetterExplorer.tsx`)
+         * ================================================================= */
+        .explorer-section {
+            max-width: 1740px;
+            margin: 0 auto;
+            padding: 36px 6vw 56px 6vw;
+        }
+
+        /* `bg-monet-panel` relationship tab bar from `LetterExplorer.tsx` */
+        .monet-tab-bar {
+            background-color: var(--color-monet-panel);
+            border-radius: 4px;
+            padding: 0 20px;
             display: flex;
             align-items: center;
             justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .preset-group {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 6px;
-            margin-bottom: 12px;
-            background: #f1f5f9;
-            padding: 4px;
-            border-radius: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
         }
 
         .preset-btn {
-            border: none;
             background: transparent;
-            color: var(--ink-secondary);
-            font-size: 12px;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 14px 8px;
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
             font-weight: 600;
-            padding: 7px 8px;
-            border-radius: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--color-monet-ink);
             cursor: pointer;
-            transition: all 0.15s;
+            transition: color 0.15s, border-color 0.15s;
         }
 
         .preset-btn:hover {
-            color: var(--ink-primary);
+            color: var(--color-monet-link);
         }
 
         .preset-btn.preset-active {
-            background: #ffffff;
-            color: var(--ink-primary);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-bottom-color: var(--color-monet-link);
+            color: var(--color-monet-link);
         }
 
+        .btn-fit {
+            border: 1px solid var(--color-monet-link);
+            background: var(--color-monet-card);
+            color: var(--color-monet-link);
+            border-radius: 12px;
+            padding: 7px 16px;
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-fit:hover {
+            background: var(--color-monet-pale-blue);
+        }
+
+        /* Main Map + Sidebar Grid */
+        .workspace {
+            display: grid;
+            grid-template-columns: 420px minmax(0, 1fr);
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 1120px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sidebar {
+            background: var(--color-monet-card);
+            border: 1px solid var(--color-monet-border);
+            border-radius: var(--radius-monet-card);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-section {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--color-monet-border);
+        }
+
+        .sidebar-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-heading {
+            font-family: var(--font-serif);
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: var(--color-monet-ink);
+            margin: 0 0 12px 0;
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+        }
+
+        /* Direction Filter Cards */
         .direction-cards {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 12px;
         }
 
         .direction-card {
             display: flex;
             flex-direction: column;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1.5px solid var(--border-subtle);
+            padding: 14px;
+            border-radius: var(--radius-monet-card);
+            border: 1px solid var(--color-monet-border);
+            background: var(--color-monet-page);
             cursor: pointer;
-            transition: all 0.15s;
             user-select: none;
+            transition: border-color 0.15s, background-color 0.15s;
         }
 
         .direction-card-out {
-            background: rgba(0, 125, 126, 0.04);
-            border-color: rgba(0, 125, 126, 0.35);
+            border-top: 3px solid var(--outbound-blue);
         }
 
         .direction-card-in {
-            background: rgba(217, 119, 6, 0.04);
-            border-color: rgba(217, 119, 6, 0.35);
+            border-top: 3px solid var(--inbound-ochre);
         }
 
         .direction-card-top {
@@ -284,47 +573,51 @@
         }
 
         .direction-card-label {
-            font-size: 12.5px;
+            font-size: 0.75rem;
             font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--color-monet-text-secondary);
             display: flex;
             align-items: center;
             gap: 6px;
         }
 
         .swatch {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             display: inline-block;
         }
 
         .swatch-out {
-            background: var(--outbound-teal);
+            background: var(--outbound-blue);
         }
 
         .swatch-in {
-            background: var(--inbound-amber);
+            background: var(--inbound-ochre);
         }
 
         .direction-count {
-            font-size: 24px;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 3px;
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-weight: 600;
+            line-height: 1;
+            margin-bottom: 4px;
         }
 
         .direction-card-out .direction-count {
-            color: var(--outbound-teal);
+            color: var(--outbound-blue);
         }
 
         .direction-card-in .direction-count {
-            color: var(--inbound-amber);
+            color: var(--inbound-ochre);
         }
 
         .direction-sub {
-            font-size: 11px;
-            color: var(--ink-muted);
-            line-height: 1.3;
+            font-size: 0.75rem;
+            color: var(--color-monet-text-secondary);
+            line-height: 1.35;
         }
 
         /* UX Options Box */
@@ -332,10 +625,10 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            margin-top: 12px;
-            padding: 11px 12px;
-            background: #f8fafc;
-            border: 1px solid var(--border-subtle);
+            margin-top: 14px;
+            padding: 12px 14px;
+            background: var(--color-monet-section);
+            border: 1px solid var(--color-monet-border);
             border-radius: 8px;
         }
 
@@ -343,14 +636,15 @@
             display: flex;
             align-items: flex-start;
             gap: 8px;
-            font-size: 12px;
-            color: var(--ink-secondary);
+            font-size: 0.8125rem;
+            color: var(--color-monet-text);
             cursor: pointer;
-            line-height: 1.35;
+            line-height: 1.4;
         }
 
         .ux-option-row input {
-            margin-top: 2px;
+            margin-top: 3px;
+            accent-color: var(--color-monet-link);
             cursor: pointer;
         }
 
@@ -358,7 +652,7 @@
         .routes-list {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .route-item {
@@ -367,25 +661,26 @@
             justify-content: space-between;
             width: 100%;
             text-align: left;
-            padding: 8px 10px;
-            background: #f8fafc;
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;
+            padding: 10px 12px;
+            background: var(--color-monet-page);
+            border: 1px solid var(--color-monet-border);
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 12.5px;
+            font-family: var(--font-sans);
+            font-size: 0.8125rem;
             transition: all 0.15s;
             gap: 8px;
         }
 
         .route-item:hover {
-            border-color: #94a3b8;
-            background: #f1f5f9;
+            border-color: var(--color-monet-link);
+            background: var(--color-monet-pale-blue);
         }
 
         .route-item-active {
-            border-color: var(--ink-primary);
-            background: #e2e8f0;
-            box-shadow: inset 0 0 0 1px var(--ink-primary);
+            border-color: var(--color-monet-link);
+            background: var(--color-monet-pale-blue);
+            box-shadow: inset 0 0 0 1px var(--color-monet-link);
         }
 
         .route-item-unplaced {
@@ -393,167 +688,181 @@
         }
 
         .route-badge {
-            font-size: 10px;
+            font-size: 0.6875rem;
             font-weight: 700;
-            padding: 2px 6px;
+            padding: 2px 7px;
             border-radius: 4px;
+            letter-spacing: 0.04em;
             flex-shrink: 0;
         }
 
         .route-badge-out {
-            background: var(--outbound-teal-soft);
-            color: var(--outbound-teal);
+            background: var(--outbound-blue-soft);
+            color: var(--outbound-blue);
         }
 
         .route-badge-in {
-            background: var(--inbound-amber-soft);
-            color: #b45309;
+            background: var(--inbound-ochre-soft);
+            color: var(--inbound-ochre);
         }
 
         .route-badge-unplaced {
-            background: #e2e8f0;
-            color: #475569;
+            background: var(--color-monet-panel);
+            color: var(--color-monet-text-secondary);
         }
 
         .route-names {
             flex: 1;
-            color: var(--ink-primary);
+            color: var(--color-monet-ink);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
         .route-arrow {
-            color: var(--ink-muted);
+            color: var(--color-monet-text-secondary);
             margin: 0 4px;
         }
 
         .inferred-tag {
-            font-size: 11px;
-            color: var(--outbound-teal);
+            font-size: 0.75rem;
+            color: var(--color-monet-link);
             margin-left: 4px;
         }
 
         .route-count {
             font-weight: 700;
-            font-size: 12px;
-            background: #fff;
-            border: 1px solid var(--border-subtle);
-            padding: 2px 7px;
-            border-radius: 999px;
-            color: var(--ink-primary);
+            font-size: 0.75rem;
+            background: var(--color-monet-card);
+            border: 1px solid var(--color-monet-border);
+            padding: 2px 8px;
+            border-radius: var(--radius-monet-pill);
+            color: var(--color-monet-link);
         }
 
-        /* Letters List */
+        /* Letters List (Styled after `EntityCardContent.tsx` & `LetterCard.tsx`) */
         .clear-filter-btn {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--primary-crimson);
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--color-monet-link);
+            text-decoration: underline;
+            text-underline-offset: 4px;
             background: none;
             border: none;
             cursor: pointer;
             padding: 0;
-            text-transform: none;
-            letter-spacing: 0;
         }
 
         .letters-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            max-height: 290px;
+            gap: 10px;
+            max-height: 360px;
             overflow-y: auto;
-            padding-right: 2px;
+            padding-right: 4px;
         }
 
         .letter-card {
-            padding: 10px 12px;
-            border-radius: 6px;
-            border: 1px solid var(--border-subtle);
-            border-left-width: 4px;
-            background: #fff;
-            font-size: 12.5px;
+            padding: 14px 16px;
+            border-radius: var(--radius-monet-card);
+            border: 1px solid var(--color-monet-border);
+            background: var(--color-monet-card);
+            transition: border-color 0.15s;
+        }
+
+        .letter-card:hover {
+            border-color: var(--color-monet-link);
         }
 
         .letter-card-out {
-            border-left-color: var(--outbound-teal);
+            border-left: 4px solid var(--outbound-blue);
         }
 
         .letter-card-in {
-            border-left-color: var(--inbound-amber);
+            border-left: 4px solid var(--inbound-ochre);
         }
 
         .letter-card-header {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             margin-bottom: 4px;
             flex-wrap: wrap;
         }
 
         .letter-dir-pill {
-            font-size: 9.5px;
+            font-size: 0.65rem;
             font-weight: 700;
-            padding: 1px 5px;
-            border-radius: 3px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            letter-spacing: 0.04em;
         }
 
         .pill-out {
-            background: var(--outbound-teal-soft);
-            color: var(--outbound-teal);
+            background: var(--outbound-blue-soft);
+            color: var(--outbound-blue);
         }
 
         .pill-in {
-            background: var(--inbound-amber-soft);
-            color: #b45309;
+            background: var(--inbound-ochre-soft);
+            color: var(--inbound-ochre);
         }
 
         .letter-id {
-            font-weight: 700;
-            color: var(--ink-primary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--color-monet-link);
         }
 
         .letter-wid {
-            font-size: 11px;
-            color: var(--ink-muted);
-            background: #f1f5f9;
-            padding: 1px 5px;
-            border-radius: 3px;
+            font-size: 0.75rem;
+            color: var(--color-monet-text-secondary);
+            background: var(--color-monet-section);
+            border: 1px solid var(--color-monet-border);
+            padding: 1px 6px;
+            border-radius: 4px;
         }
 
         .letter-stub-badge {
-            font-size: 10px;
+            font-size: 0.6875rem;
             font-weight: 600;
-            background: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-            padding: 0 5px;
-            border-radius: 3px;
+            background: var(--color-monet-pink);
+            color: #9d174d;
+            padding: 1px 6px;
+            border-radius: 4px;
         }
 
         .letter-date {
             margin-left: auto;
-            font-size: 11.5px;
-            color: var(--ink-muted);
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--color-monet-text-secondary);
         }
 
         .letter-correspondents {
-            font-size: 12.5px;
-            color: var(--ink-primary);
+            font-family: var(--font-serif);
+            font-size: 1.2rem;
+            line-height: 1.3;
+            font-weight: 600;
+            color: var(--color-monet-ink);
             margin-bottom: 2px;
         }
 
         .letter-places {
-            font-size: 11.5px;
-            color: var(--ink-muted);
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--color-monet-text-secondary);
         }
 
         .letter-subject {
-            margin: 6px 0 0 0;
-            font-size: 11.5px;
-            color: var(--ink-secondary);
-            line-height: 1.4;
+            margin: 8px 0 0 0;
+            font-size: 0.8125rem;
+            color: var(--color-monet-text);
+            line-height: 1.45;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -561,45 +870,22 @@
         }
 
         .empty-state {
-            font-size: 12.5px;
-            color: var(--ink-muted);
-            padding: 12px;
+            font-size: 0.875rem;
+            color: var(--color-monet-text-secondary);
+            padding: 16px;
             text-align: center;
-            background: #f8fafc;
-            border-radius: 6px;
+            background: var(--color-monet-section);
+            border-radius: 8px;
         }
 
-        /* Typesense Query Inspector */
-        details.ts-inspector {
-            font-size: 12px;
-        }
-
-        details.ts-inspector summary {
-            cursor: pointer;
-            font-weight: 700;
-            color: var(--ink-secondary);
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-        }
-
-        .ts-code {
-            margin: 10px 0 0 0;
-            padding: 10px 12px;
-            background: #0f172a;
-            color: #a5f3fc;
-            border-radius: 6px;
-            font-size: 11px;
-            line-height: 1.45;
-            overflow-x: auto;
-            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-        }
-
-        /* Map Canvas & Overlays */
+        /* Map Canvas Container */
         .map-wrapper {
-            flex: 1;
             position: relative;
-            min-width: 0;
+            height: 760px;
+            border-radius: var(--radius-monet-card);
+            border: 1px solid var(--color-monet-border);
+            overflow: hidden;
+            background: var(--color-monet-section);
         }
 
         #map {
@@ -640,13 +926,14 @@
             display: inline-flex;
             align-items: center;
             gap: 3px;
-            padding: 2px 7px;
-            border-radius: 999px;
+            padding: 2px 8px;
+            border-radius: var(--radius-monet-pill);
+            font-family: var(--font-sans);
             font-size: 11px;
             font-weight: 700;
             color: #fff;
-            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.25);
-            border: 1.5px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(28, 28, 30, 0.22);
+            border: 1.5px solid var(--color-monet-page);
             white-space: nowrap;
             cursor: pointer;
             transition: transform 0.15s;
@@ -657,15 +944,15 @@
         }
 
         .curve-badge-out {
-            background: var(--outbound-teal);
+            background: var(--outbound-blue);
         }
 
         .curve-badge-in {
-            background: var(--inbound-amber);
+            background: var(--inbound-ochre);
         }
 
         .curve-badge-selected {
-            box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.35);
+            box-shadow: 0 0 0 3px rgba(25, 89, 154, 0.35);
             transform: scale(1.12);
         }
 
@@ -677,13 +964,13 @@
 
         /* Permanent Place Labels on Map */
         .leaflet-tooltip.place-permanent-tooltip {
-            background: rgba(255, 255, 255, 0.95);
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
-            padding: 4px 8px;
-            color: var(--ink-primary);
-            font-family: inherit;
+            background: rgba(254, 251, 244, 0.96);
+            border: 1px solid var(--color-monet-border);
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(28, 28, 30, 0.12);
+            padding: 4px 10px;
+            color: var(--color-monet-ink);
+            font-family: var(--font-sans);
         }
 
         .leaflet-tooltip.place-permanent-tooltip::before {
@@ -691,27 +978,30 @@
         }
 
         .leaflet-tooltip.primary-permanent-tooltip {
-            background: #1e293b;
-            border: 1.5px solid var(--primary-crimson);
-            color: #ffffff;
-            box-shadow: 0 4px 12px rgba(205, 50, 56, 0.28);
-            padding: 5px 10px;
+            background: var(--color-monet-card);
+            border: 2px solid var(--primary-crimson);
+            color: var(--color-monet-ink);
+            box-shadow: 0 4px 14px rgba(205, 50, 56, 0.24);
+            padding: 5px 12px;
         }
 
         .place-label-card {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            font-size: 12px;
+            font-size: 0.8125rem;
         }
 
         .primary-star {
-            color: #f87171;
-            font-size: 12px;
+            color: var(--primary-crimson);
+            font-size: 13px;
         }
 
         .place-label-name {
+            font-family: var(--font-serif);
+            font-size: 1.05rem;
             font-weight: 700;
+            color: var(--color-monet-ink);
         }
 
         .place-label-pills {
@@ -720,63 +1010,66 @@
         }
 
         .place-pill {
-            font-size: 10.5px;
+            font-family: var(--font-sans);
+            font-size: 0.6875rem;
             font-weight: 700;
-            padding: 1px 5px;
+            padding: 1px 6px;
             border-radius: 4px;
         }
 
         .place-pill-out {
-            background: var(--outbound-teal-soft);
-            color: var(--outbound-teal);
+            background: var(--outbound-blue-soft);
+            color: var(--outbound-blue);
         }
 
         .place-pill-in {
-            background: var(--inbound-amber-soft);
-            color: #b45309;
+            background: var(--inbound-ochre-soft);
+            color: var(--inbound-ochre);
         }
 
         /* Hover Tooltip for Arcs */
         .map-tooltip-title {
+            font-family: var(--font-serif);
             font-weight: 700;
-            font-size: 12.5px;
+            font-size: 1rem;
+            color: var(--color-monet-link);
             margin-bottom: 2px;
         }
 
         .map-tooltip-sub {
-            font-size: 11.5px;
-            color: #475569;
+            font-size: 0.75rem;
+            color: var(--color-monet-text);
         }
 
         .map-tooltip-hint {
-            font-size: 10.5px;
-            color: #007d7e;
-            margin-top: 2px;
+            font-size: 0.6875rem;
+            color: var(--color-monet-link);
+            margin-top: 3px;
             font-weight: 600;
+            text-transform: uppercase;
         }
 
         /* Floating Map Legend */
         .map-legend {
             position: absolute;
-            bottom: 24px;
-            left: 24px;
-            background: rgba(255, 255, 255, 0.96);
+            bottom: 20px;
+            left: 20px;
+            background: rgba(254, 251, 244, 0.96);
             backdrop-filter: blur(6px);
-            border: 1px solid var(--border-subtle);
-            border-radius: 10px;
-            padding: 14px 16px;
-            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.12);
+            border: 1px solid var(--color-monet-border);
+            border-radius: var(--radius-monet-card);
+            padding: 16px 18px;
+            box-shadow: 0 4px 16px rgba(28, 28, 30, 0.1);
             z-index: 500;
-            max-width: 310px;
-            font-size: 12px;
+            max-width: 320px;
+            font-size: 0.78rem;
         }
 
         .map-legend-title {
-            font-size: 11.5px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            color: var(--ink-secondary);
+            font-family: var(--font-serif);
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--color-monet-ink);
             margin: 0 0 10px 0;
         }
 
@@ -784,8 +1077,8 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 7px;
-            color: var(--ink-primary);
+            margin-bottom: 8px;
+            color: var(--color-monet-text);
         }
 
         .legend-row:last-child {
@@ -797,7 +1090,7 @@
             height: 14px;
             border-radius: 50%;
             background: var(--primary-crimson);
-            border: 2px solid #fff;
+            border: 2px solid var(--color-monet-page);
             box-shadow: 0 0 0 3px rgba(205, 50, 56, 0.35);
             flex-shrink: 0;
         }
@@ -806,16 +1099,16 @@
             width: 12px;
             height: 12px;
             border-radius: 50%;
-            background: var(--bi-slate);
-            border: 2px solid #fff;
-            box-shadow: 0 0 0 2px rgba(30, 41, 59, 0.3);
+            background: var(--color-monet-deep-blue);
+            border: 2px solid var(--color-monet-page);
+            box-shadow: 0 0 0 2px rgba(18, 69, 116, 0.3);
             flex-shrink: 0;
         }
 
         .legend-line-out {
             width: 22px;
             height: 3px;
-            background: var(--outbound-teal);
+            background: var(--outbound-blue);
             border-radius: 2px;
             flex-shrink: 0;
         }
@@ -823,175 +1116,368 @@
         .legend-line-in {
             width: 22px;
             height: 3px;
-            background: var(--inbound-amber);
+            background: var(--inbound-ochre);
             border-radius: 2px;
             flex-shrink: 0;
+        }
+
+        /* =================================================================
+         * 5. SOURCES & AUTHORITY FOOTER (Matches `SourcesInfo.tsx`)
+         * ================================================================= */
+        .sources-section {
+            max-width: 1740px;
+            margin: 0 auto;
+            padding: 48px 6vw 64px 6vw;
+            border-top: 1px solid var(--color-monet-border);
+        }
+
+        .sources-heading {
+            font-family: var(--font-serif);
+            font-size: 2.125rem;
+            line-height: 1.2;
+            font-weight: 500;
+            margin: 0;
+            color: var(--color-monet-ink);
+        }
+
+        .sources-desc {
+            color: var(--color-monet-text-secondary);
+            font-size: 1rem;
+            margin: 4px 0 18px 0;
+        }
+
+        .sources-subheading {
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin: 0 0 12px 0;
+            color: var(--color-monet-text);
+        }
+
+        .authority-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .authority-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .authority-vocab {
+            min-width: 110px;
+        }
+
+        .authority-link {
+            color: var(--color-monet-link);
+            text-decoration: none;
+        }
+
+        .authority-link:hover {
+            text-decoration: underline;
+        }
+
+        details.ts-inspector summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--color-monet-link);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .ts-code {
+            margin: 12px 0 0 0;
+            padding: 16px 18px;
+            background: var(--color-monet-section);
+            color: var(--color-monet-ink);
+            border: 1px solid var(--color-monet-border);
+            border-radius: var(--radius-monet-card);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
         }
     </style>
 </head>
 <body>
-    <!-- Top Header Bar -->
-    <header class="top-bar">
-        <div class="brand-group">
-            <span class="brand-pill">UX / Map Prototype</span>
-            <div>
-                <h1 class="brand-title">Place Correspondence Map</h1>
-                <div class="brand-subtitle">
-                    Plotting letters sent from &amp; to a Place via Typesense
-                </div>
-            </div>
-        </div>
+    <!-- 1. SiteHeader (Matching `SiteHeader.tsx`) -->
+    <header class="site-header">
+        <a href="#" class="site-brand">
+            <svg preserveAspectRatio="none" overflow="visible" width="115" height="53" viewBox="0 0 115 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                    <path d="M105.323 4.63097C105.822 5.14339 105.938 5.35604 106.635 5.58143C108.347 5.10403 107.631 3.60214 108.791 3.19523C109.442 2.96684 110.773 2.95464 111.438 3.28389C111.496 3.72064 111.56 4.15668 111.627 4.59238C112.837 4.86973 112.84 4.46795 114.275 4.02374C113.274 7.78356 109.748 11.3711 107.872 14.8877C107.504 15.4932 106.685 15.7129 106.291 16.2673C106.142 16.4777 106.135 17.9021 106.132 17.9047C103.222 19.6164 102.276 21.5388 100.381 23.8741C100.231 24.059 100.113 24.1749 99.9765 24.3928L99.7671 24.4761C97.9066 26.4469 96.7142 29.6944 94.6953 31.1062C93.4625 30.3084 93.8109 30.4733 93.1992 29.0133C90.8627 28.4176 90.8872 30.4307 88.577 30.7436L87.729 30.1735C87.9905 29.4812 90.2608 27.7415 91.258 26.5591L91.2668 25.8689C92.5508 24.9706 96.4667 20.4946 95.935 19.1957L95.2611 19.0909L94.9003 19.6039L94.4517 19.6189L94.3267 19.2233C94.6189 18.7128 95.2596 18.4644 95.8329 18.1568L95.2403 17.772L95.2264 17.0533L95.7383 16.7747L96.1906 17.1632L96.5343 17.0872L96.2529 16.678L96.8182 16.5126C97.532 16.7905 97.7773 16.9472 98.5381 16.9448C99.3215 16.1897 99.3317 16.4088 99.4658 15.5398C98.8383 14.4588 97.5134 14.5723 96.3831 14.5337C96.494 14.3928 98.32 12.7047 98.4448 12.6119C99.5655 11.776 104.74 4.85848 105.323 4.63097Z" fill="#19599A"/>
+                    <path d="M10.4745 34.6945C10.5347 34.6275 11.0936 33.9725 11.0936 33.9725C13.5323 33.6765 17.0118 31.6199 19.3069 32.9628C19.842 34.8506 17.3845 36.8793 16.9886 39.0065L16.4943 39.2478C16.8915 40.5363 17.4531 39.3871 17.3296 41.1596C17.1615 43.4852 20.2422 45.2056 22.8122 45.1133C23.5555 45.1461 24.3255 45.1355 25.0244 45.3359C24.3683 46.6522 22.5076 45.6262 21.6848 46.4164L21.8063 46.8927C22.2942 46.9351 22.6257 46.9642 23.1093 46.9711C25.5493 47.0054 24.6645 47.9032 27.6091 47.6288L27.422 48.2098C25.8661 48.7993 23.619 48.7479 21.8887 48.7676C19.3666 49.279 17.7396 49.2136 15.281 48.6014C6.60653 46.441 10.033 40.8156 8.47015 38.295C7.72716 38.1761 7.67835 38.2091 6.92926 38.3837L6.67669 39.0607C4.18497 40.705 4.97719 42.7328 1.84931 42.9325C-0.541922 42.1865 -0.385209 39.6062 1.02183 38.1744C2.25676 36.9175 4.01525 36.7094 5.48666 35.9179L5.71032 35.7942C8.88633 35.3471 6.98026 34.5589 10.4745 34.6945Z" fill="#19599A"/>
+                    <path d="M63.4094 21.9702C65.2509 21.5326 67.1284 21.2422 68.6852 22.4167C67.4805 22.5832 63.2167 26.7157 62.187 27.7624C61.5016 28.4587 59.5308 28.5632 59.0274 29.006C54.9093 32.6301 53.6024 34.169 48.235 36.4825C47.2282 38.2342 49.1436 37.4794 45.6401 39.0839C44.6813 39.5234 43.8738 40.977 42.4538 41.8162C39.4884 43.5693 30.8662 47.6653 27.6091 47.6288C24.6645 47.9032 25.5493 47.0054 23.1093 46.9711C22.6257 46.9642 22.2942 46.9351 21.8063 46.8927L21.6848 46.4164C22.5076 45.6262 24.3683 46.6522 25.0244 45.3359C24.3255 45.1355 23.5555 45.1461 22.8122 45.1133C25.7579 45.066 31.5245 44.4788 33.785 42.6267C35.058 41.5846 36.2646 40.0301 37.6789 39.2072C39.5218 38.1373 41.689 37.4533 43.46 36.2829C46.3457 34.3802 62.2203 22.7132 63.2256 22.4574L63.4094 21.9702Z" fill="#19599A"/>
+                    <path d="M62.0716 36.2219L62.6652 36.1357L64.1713 35.8397C65.1097 36.4076 64.8808 36.0998 65.13 36.9579C64.5884 37.6667 63.9564 38.281 64.1049 39.1103L64.2946 39.2891C65.0188 39.9849 65.1389 40.1288 65.2416 41.086C63.7845 41.9349 63.2046 42.7127 63.6178 44.2065C64.5474 44.4055 64.9224 45.0074 65.4619 45.7783L66.2536 46.247C65.458 47.4916 62.2686 49.9361 61.0963 51.1051L60.6103 51.215L60.4323 51.787L57.6646 53C56.588 52.5929 54.1828 51.2229 53.4086 50.4294C53.4654 49.6767 61.1721 37.0474 61.8434 36.7839L62.0716 36.2219Z" fill="#19599A"/>
+                </g>
+            </svg>
+            <span>The Monet Letters Project</span>
+        </a>
 
-        <div class="top-controls">
+        <div class="header-center-picker">
             <label class="place-picker-label" for="place-select">
-                <span>Primary Place:</span>
+                <span>Switch Place:</span>
                 <select id="place-select" class="place-select"></select>
             </label>
-            <button type="button" id="fit-bounds-btn" class="btn-fit">
-                Fit Map to Routes
-            </button>
+        </div>
+
+        <nav class="site-nav" aria-label="Main navigation">
+            <ul class="site-nav-links">
+                <li><a href="#">Letters</a></li>
+                <li><a href="#">Explore</a></li>
+                <li><a href="#">Timeline</a></li>
+                <li><a href="#" class="active">Map</a></li>
+                <li><a href="#">About</a></li>
+            </ul>
             <div id="ts-connection-badge" class="status-badge status-snapshot">
                 <span class="status-dot"></span>
-                <span>Loading Typesense...</span>
+                <span>Typesense</span>
             </div>
-        </div>
+        </nav>
     </header>
 
-    <!-- Main Split View -->
-    <div class="workspace">
-        <aside class="sidebar">
-            <!-- Selected Primary Place Summary -->
-            <section class="sidebar-section">
-                <div class="place-header-eyebrow">
-                    <span>&#9679; Primary Place Entity</span>
+    <main>
+        <!-- 2. EntityHeader + At a Glance Card (Matching `EntityHeader.tsx` & `EntityMetadata.tsx` on `/en/people/141`) -->
+        <section class="entity-hero-section">
+            <div class="entity-hero-container">
+                <div>
+                    <p class="entity-eyebrow">Place</p>
+                    <h1 id="primary-place-title" class="entity-title">Rouen</h1>
+                    <p id="primary-place-meta" class="entity-subtitle-meta"></p>
+
+                    <div class="entity-supporting">
+                        <p class="entity-description">
+                            Interactive correspondence map plotting letters written from and sent to this place in the Monet Letters collection. Toggle outbound or inbound routes below, or select a curved route arc on the map to inspect individual letters.
+                        </p>
+                        <ul class="entity-tags" aria-label="Place categories">
+                            <li class="entity-tag">Place Entity</li>
+                            <li class="entity-tag">Correspondence Hub</li>
+                        </ul>
+                    </div>
                 </div>
-                <h2 id="primary-place-title" class="place-header-title">Rouen</h2>
-                <div id="primary-place-meta" class="place-header-meta"></div>
-            </section>
 
-            <!-- Direction Toggles (From / To) -->
-            <section class="sidebar-section">
-                <h3 class="section-heading">Direction Filter Toggles</h3>
+                <!-- At a Glance (`EntityMetadata.tsx`) -->
+                <aside class="entity-metadata-card" aria-label="Place details">
+                    <h2 class="entity-metadata-title">At a Glance</h2>
+                    <dl class="entity-metadata-dl">
+                        <div class="entity-metadata-item">
+                            <dt class="entity-metadata-dt">Region</dt>
+                            <dd id="meta-region" class="entity-metadata-dd">Normandy (Seine-Maritime)</dd>
+                        </div>
+                        <div class="entity-metadata-item">
+                            <dt class="entity-metadata-dt">Country</dt>
+                            <dd id="meta-country" class="entity-metadata-dd">FR</dd>
+                        </div>
+                        <div class="entity-metadata-item">
+                            <dt class="entity-metadata-dt">Coordinates</dt>
+                            <dd id="meta-coords" class="entity-metadata-dd">49.4432° N, 1.1000° E</dd>
+                        </div>
+                        <div class="entity-metadata-item">
+                            <dt class="entity-metadata-dt">Getty TGN ID</dt>
+                            <dd id="meta-tgn" class="entity-metadata-dd">7008929</dd>
+                        </div>
+                    </dl>
+                </aside>
+            </div>
+        </section>
 
-                <div class="preset-group" role="group" aria-label="Quick direction presets">
+        <!-- 3. Correspondence Summary Stats Strip (Matching `CorrespondenceSummary.tsx`) -->
+        <section class="correspondence-summary" aria-label="Correspondence summary">
+            <header class="correspondence-header">
+                <div>
+                    <h2 class="correspondence-heading">Correspondence Network</h2>
+                    <p class="correspondence-subtitle">
+                        Letters written from and sent to this location across the Monet correspondence archive
+                    </p>
+                </div>
+            </header>
+
+            <div class="correspondence-stats-grid">
+                <section class="correspondence-stat">
+                    <span id="stat-from-count" class="correspondence-stat-value">28</span>
+                    <span class="correspondence-stat-label">Letters Sent From Place</span>
+                </section>
+                <section class="correspondence-stat">
+                    <span id="stat-to-count" class="correspondence-stat-value">2</span>
+                    <span class="correspondence-stat-label">Letters Sent To Place</span>
+                </section>
+                <section class="correspondence-stat">
+                    <span id="stat-connected-places" class="correspondence-stat-value">3</span>
+                    <span class="correspondence-stat-label">Connected Places</span>
+                </section>
+                <section class="correspondence-stat">
+                    <span id="stat-active-range" class="correspondence-stat-value">1892–1893</span>
+                    <span class="correspondence-stat-label">Active Correspondence Range</span>
+                </section>
+            </div>
+        </section>
+
+        <!-- 4. Map & Letters Explorer Section (Matching `LetterExplorer.tsx`) -->
+        <section class="explorer-section" aria-label="Place correspondence map and letters">
+            <!-- `bg-monet-panel` Tab Bar from `LetterExplorer.tsx` -->
+            <nav class="monet-tab-bar" aria-label="Letter direction filter">
+                <div class="preset-group" role="group">
                     <button type="button" id="preset-both" class="preset-btn preset-active">
-                        Both Directions
+                        ALL DIRECTIONS (30)
                     </button>
                     <button type="button" id="preset-from" class="preset-btn">
-                        Only From Place
+                        FROM ROUEN (28)
                     </button>
                     <button type="button" id="preset-to" class="preset-btn">
-                        Only To Place
+                        TO ROUEN (2)
                     </button>
                 </div>
 
-                <div class="direction-cards">
-                    <label class="direction-card direction-card-out">
-                        <div class="direction-card-top">
-                            <span class="direction-card-label">
-                                <span class="swatch swatch-out"></span>
-                                Letters From
-                            </span>
-                            <input type="checkbox" id="toggle-outbound" checked />
+                <button type="button" id="fit-bounds-btn" class="btn-fit">
+                    Fit Map to Routes
+                </button>
+            </nav>
+
+            <!-- Split Workspace: Left Controls & Letters | Right Leaflet Map -->
+            <div class="workspace">
+                <aside class="sidebar">
+                    <!-- Direction Toggles (From / To) -->
+                    <section class="sidebar-section">
+                        <h3 class="section-heading">Direction Toggles</h3>
+
+                        <div class="direction-cards">
+                            <label class="direction-card direction-card-out">
+                                <div class="direction-card-top">
+                                    <span class="direction-card-label">
+                                        <span class="swatch swatch-out"></span>
+                                        Letters From
+                                    </span>
+                                    <input type="checkbox" id="toggle-outbound" checked />
+                                </div>
+                                <div id="count-from-total" class="direction-count">28</div>
+                                <div id="count-from-sub" class="direction-sub"></div>
+                            </label>
+
+                            <label class="direction-card direction-card-in">
+                                <div class="direction-card-top">
+                                    <span class="direction-card-label">
+                                        <span class="swatch swatch-in"></span>
+                                        Letters To
+                                    </span>
+                                    <input type="checkbox" id="toggle-inbound" checked />
+                                </div>
+                                <div id="count-to-total" class="direction-count">2</div>
+                                <div id="count-to-sub" class="direction-sub"></div>
+                            </label>
                         </div>
-                        <div id="count-from-total" class="direction-count">28</div>
-                        <div id="count-from-sub" class="direction-sub"></div>
-                    </label>
 
-                    <label class="direction-card direction-card-in">
-                        <div class="direction-card-top">
-                            <span class="direction-card-label">
-                                <span class="swatch swatch-in"></span>
-                                Letters To
-                            </span>
-                            <input type="checkbox" id="toggle-inbound" checked />
+                        <div id="rouen-ux-options" class="ux-options-list">
+                            <label class="ux-option-row">
+                                <input type="checkbox" id="toggle-db-stubs" checked />
+                                <span>
+                                    <strong>Include 6 DB Stub Letters</strong> (shows full Wagtail Admin count of <strong>28 From</strong> vs. <strong>22 non-stub</strong> in Typesense)
+                                </span>
+                            </label>
+                            <label class="ux-option-row">
+                                <input type="checkbox" id="toggle-infer-giverny" />
+                                <span>
+                                    <strong>UX Exploration:</strong> Infer <em>Giverny</em> for Rouen letters to Alice Hosched&eacute; where destination place is blank
+                                </span>
+                            </label>
+                            <label class="ux-option-row">
+                                <input type="checkbox" id="toggle-animate-flow" checked />
+                                <span>
+                                    <strong>Animate directional flow</strong> along curved connecting lines
+                                </span>
+                            </label>
                         </div>
-                        <div id="count-to-total" class="direction-count">2</div>
-                        <div id="count-to-sub" class="direction-sub"></div>
-                    </label>
-                </div>
+                    </section>
 
-                <div id="rouen-ux-options" class="ux-options-list">
-                    <label class="ux-option-row">
-                        <input type="checkbox" id="toggle-db-stubs" checked />
-                        <span>
-                            <strong>Include 6 DB Stub Letters</strong> (shows full Wagtail Admin count of <strong>28 From</strong> vs. <strong>22 non-stub</strong> in Typesense)
-                        </span>
-                    </label>
-                    <label class="ux-option-row">
-                        <input type="checkbox" id="toggle-infer-giverny" />
-                        <span>
-                            <strong>UX Exploration:</strong> Infer <em>Giverny</em> for Rouen letters to Alice Hosched&eacute; where destination place is blank
-                        </span>
-                    </label>
-                    <label class="ux-option-row">
-                        <input type="checkbox" id="toggle-animate-flow" checked />
-                        <span>
-                            <strong>Animate directional flow</strong> along curved connecting lines
-                        </span>
-                    </label>
-                </div>
-            </section>
+                    <!-- Connected Place Routes -->
+                    <section class="sidebar-section">
+                        <h3 class="section-heading">
+                            <span>Connected Routes</span>
+                            <span style="font-family: var(--font-sans); font-weight: 500; font-size: 0.75rem; color: var(--color-monet-text-secondary);">Click to filter</span>
+                        </h3>
+                        <div id="routes-list" class="routes-list"></div>
+                    </section>
 
-            <!-- Connected Place Routes -->
-            <section class="sidebar-section">
-                <h3 class="section-heading">
-                    <span>Connected Places &amp; Routes</span>
-                    <span style="font-weight: 400; text-transform: none; font-size: 11px;">Click to filter</span>
-                </h3>
-                <div id="routes-list" class="routes-list"></div>
-            </section>
+                    <!-- Filtered Letter List -->
+                    <section class="sidebar-section">
+                        <h3 class="section-heading">
+                            <span id="letters-filter-label">All Visible Letters</span>
+                            <button
+                                type="button"
+                                id="clear-route-filter-btn"
+                                class="clear-filter-btn"
+                                style="display: none;"
+                            >
+                                Clear filter
+                            </button>
+                        </h3>
+                        <div id="letters-list" class="letters-list"></div>
+                    </section>
+                </aside>
 
-            <!-- Filtered Letter List -->
-            <section class="sidebar-section">
-                <h3 class="section-heading">
-                    <span id="letters-filter-label">All Visible Letters</span>
-                    <button
-                        type="button"
-                        id="clear-route-filter-btn"
-                        class="clear-filter-btn"
-                        style="display: none;"
-                    >
-                        Show all routes &times;
-                    </button>
-                </h3>
-                <div id="letters-list" class="letters-list"></div>
-            </section>
+                <!-- Leaflet Map Card -->
+                <div class="map-wrapper">
+                    <div id="map"></div>
 
-            <!-- Typesense Query Inspector -->
-            <section class="sidebar-section">
-                <details class="ts-inspector" open>
-                    <summary>Typesense Query &amp; Schema</summary>
-                    <pre id="ts-query-code" class="ts-code"></pre>
-                </details>
-            </section>
-        </aside>
-
-        <!-- Leaflet Map -->
-        <main class="map-wrapper">
-            <div id="map"></div>
-
-            <div class="map-legend">
-                <h4 class="map-legend-title">Map Key</h4>
-                <div class="legend-row">
-                    <span class="legend-dot-primary"></span>
-                    <span><strong>Primary Place</strong> (highlighted dot + dashed boundary)</span>
-                </div>
-                <div class="legend-row">
-                    <span class="legend-dot-connected"></span>
-                    <span><strong>Connected Place</strong> (size scaled by letter volume)</span>
-                </div>
-                <div class="legend-row">
-                    <span class="legend-line-out"></span>
-                    <span><strong>Letters Sent From</strong> Primary Place (outbound curve)</span>
-                </div>
-                <div class="legend-row">
-                    <span class="legend-line-in"></span>
-                    <span><strong>Letters Sent To</strong> Primary Place (inbound curve)</span>
+                    <div class="map-legend">
+                        <h4 class="map-legend-title">Map Legend</h4>
+                        <div class="legend-row">
+                            <span class="legend-dot-primary"></span>
+                            <span><strong>Primary Place</strong> (highlighted dot &amp; boundary)</span>
+                        </div>
+                        <div class="legend-row">
+                            <span class="legend-dot-connected"></span>
+                            <span><strong>Connected Place</strong> (dot scaled by letter count)</span>
+                        </div>
+                        <div class="legend-row">
+                            <span class="legend-line-out"></span>
+                            <span><strong>Letters Sent From</strong> Place (Monet blue curve)</span>
+                        </div>
+                        <div class="legend-row">
+                            <span class="legend-line-in"></span>
+                            <span><strong>Letters Sent To</strong> Place (warm ochre curve)</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </section>
+
+        <!-- 5. Sources & Authority Section (Matching `SourcesInfo.tsx` on `/en/people/141`) -->
+        <section class="sources-section" aria-label="Sources and authority records">
+            <h2 class="sources-heading">Sources</h2>
+            <p class="sources-desc">
+                External authority records and live Typesense query parameters for this place.
+            </p>
+            <h3 class="sources-subheading">Authorities</h3>
+            <div class="authority-grid">
+                <div class="authority-row">
+                    <div class="authority-vocab">TGN</div>
+                    <div>
+                        <a
+                            id="sources-tgn-link"
+                            class="authority-link"
+                            href="http://vocab.getty.edu/page/tgn/7008929"
+                            target="_blank"
+                            rel="noreferrer"
+                        >7008929</a>
+                    </div>
+                </div>
+                <div class="authority-row">
+                    <div class="authority-vocab">Preferred Label:</div>
+                    <div id="sources-label-preferred">Rouen</div>
+                </div>
+            </div>
+
+            <details class="ts-inspector" open>
+                <summary>View Typesense Query Parameters</summary>
+                <pre id="ts-query-code" class="ts-code"></pre>
+            </details>
+        </section>
+    </main>
 
     <!-- Leaflet 1.9.4 JS -->
     <script
