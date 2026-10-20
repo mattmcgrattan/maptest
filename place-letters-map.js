@@ -11,7 +11,7 @@
     "use strict";
 
     const DATA = window.MONET_PLACE_MAP_DATA || {
-        default_place_id: "letters.place:448",
+        default_place_id: "letters.place:434",
         places: {},
         letters: [],
         rouen_db_stubs: [],
@@ -28,7 +28,7 @@
     };
 
     const state = {
-        selectedPlaceId: DATA.default_place_id || "letters.place:448",
+        selectedPlaceId: DATA.default_place_id || "letters.place:434",
         showOutbound: true,       // Letters Sent FROM primary place
         showInbound: true,        // Letters Sent TO primary place
         includeDbStubs: true,     // Include the 6 DB stub letters for Rouen (28 From total)
