@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>All Places Correspondence Network — The Monet Letters Project</title>
+
+    <!-- Google Fonts matching `frontend/src/styles.css` (Cormorant Garamond & Work Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Work+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap"
+        rel="stylesheet"
+    />
+
+    <!-- Leaflet 1.9.4 CSS -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin=""
+    />
+
+    <style>
+        /* Exact design tokens from `frontend/src/theme.css` */
+        :root {
+            /* Backgrounds */
+            --color-monet-page: #fefbf4;
+            --color-monet-section: #f6f3ec;
+            --color-monet-panel: #ebe4db;
+            --color-monet-card: #ffffff;
+
+            /* Text and actions */
+            --color-monet-link: #19599a;
+            --color-monet-logo: #83a3c4;
+            --color-monet-text: #1c1c1e;
+            --color-monet-text-secondary: #606060;
+            --color-monet-text-subtle: #606060;
+            --color-monet-deep-blue: #124574;
+            --color-monet-soft-blue: #83a3c4;
+            --color-monet-pale-blue: #e8eff5;
+            --color-monet-pale-yellow: #fdfcc1;
+            --color-monet-pink: #f3e8ee;
+
+            /* Borders & aliases */
+            --color-monet-paper: #fefbf4;
+            --color-monet-surface: #f6f3ec;
+            --color-monet-wash: #ebe4db;
+            --color-monet-ink: #1c1c1e;
+            --color-monet-muted: #606060;
+            --color-monet-border: #d8cfc3;
+            --color-monet-control-border: #918477;
+
+            /* Map directional colors harmonized with Monet theme */
+            --primary-crimson: #cd3238;
+            --outbound-blue: #19599a;
+            --outbound-blue-soft: #e8eff5;
+            --inbound-ochre: #b45309;
+            --inbound-ochre-soft: #fef3c7;
+
+            /* Typography */
+            --font-sans: "Work Sans", ui-sans-serif, system-ui, sans-serif;
+            --font-serif: "Cormorant Garamond", ui-serif, Georgia, serif;
+
+            /* Radii */
+            --radius-monet-card: 0.75rem;
+            --radius-monet-pill: 9999px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: var(--font-sans);
+            background-color: var(--color-monet-page);
+            color: var(--color-monet-text);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* =================================================================
+         * 1. SITE HEADER (Matches `frontend/src/components/navigation/SiteHeader.tsx`)
+         * ================================================================= */
+        .site-header {
+            background-color: var(--color-monet-section);
+            border-bottom: 1px solid var(--color-monet-border);
+            min-height: 81px;
+            padding: 12px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .site-brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-monet-link);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .site-brand svg {
+            height: 20px;
+            width: auto;
+            display: block;
+        }
+
+        .header-center-picker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--color-monet-card);
+            border: 1px solid var(--color-monet-border);
+            border-radius: 18px;
+            padding: 5px 16px;
+            height: 44px;
+        }
+
+        .place-picker-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--color-monet-text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .place-select {
+            border: none;
+            background: transparent;
+            font-family: var(--font-sans);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--color-monet-link);
+            cursor: pointer;
+            outline: none;
+            padding-right: 8px;
+        }
+
+        .site-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .site-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .site-nav-links a {
+            color: var(--color-monet-ink);
+            text-decoration: none;
+        }
+
+        .site-nav-links a:hover,
+        .site-nav-links a.active {
+            color: var(--color-monet-link);
+        }
+
+        .view-switcher-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: var(--radius-monet-pill);
+            border: 1px solid var(--color-monet-link);
+            background: var(--color-monet-pale-blue);
+            color: var(--color-monet-link);
+            text-decoration: none;
+            transition: background 0.15s;
+        }
+
+        .view-switcher-pill:hover {
+            background: #d7e4f0;
+        }
+
+        /* =================================================================
+         * 2. MAP EXPLORER SECTION (Matches `LetterExplorer.tsx`)
+         * ================================================================= */
+        .explorer-section {
+            max-width: 1740px;
+            margin: 0 auto;
+            padding: 24px 40px 56px 40px;
+        }
+
+        .monet-tab-bar {
+            background-color: var(--color-monet-panel);
+            border-radius: 4px;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .preset-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 28px;
+        }
+
+        .preset-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 14px 6px;
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--color-monet-ink);
+            cursor: pointer;
+            transition: color 0.15s, border-color 0.15s;
+        }
+
+        .preset-btn:hover {
+            color: var(--color-monet-link);
+        }
+
+        .preset-btn.preset-active {
+            border-bottom-color: var(--color-monet-link);
+            color: var(--color-monet-link);
+        }
+
+        .label-density-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--color-monet-ink);
+            padding: 8px 0;
+        }
+
+        .label-density-title {
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--color-monet-text-secondary);
+        }
+
+        .radio-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--color-monet-card);
+            border: 1px solid var(--color-monet-border);
+            padding: 5px 10px;
+            border-radius: var(--radius-monet-pill);
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .radio-pill input {
+            accent-color: var(--color-monet-link);
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Top Controls Bar (Checkboxes & Focused Place Banner) Above Full-Width Map */
+        .map-controls-bar {
+            background: var(--color-monet-card);
+            border: 1px solid var(--color-monet-border);
+            border-radius: var(--radius-monet-card);
+            padding: 16px 22px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .ux-options-grid {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 14px 28px;
+        }
+
+        .ux-option-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8125rem;
+            color: var(--color-monet-text);
+            cursor: pointer;
+            line-height: 1.38;
+        }
+
+        .ux-option-row input {
+            margin: 0;
+            accent-color: var(--color-monet-link);
+            cursor: pointer;
+        }
+
+        /* Focused Place Highlight Banner */
+        .focus-place-banner {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            background: var(--color-monet-pale-blue);
+            border: 1px solid var(--color-monet-link);
+            border-radius: 10px;
+            padding: 10px 16px;
+        }
+
+        .focus-place-top {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .focus-place-title {
+            font-family: var(--font-serif);
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--color-monet-link);
+        }
+
+        .focus-place-sub {
+            font-size: 0.8rem;
+            color: var(--color-monet-text-secondary);
+        }
+
+        .focus-dir-pills {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .dir-pill-btn {
+            border: 1px solid var(--color-monet-border);
+            background: var(--color-monet-card);
+            color: var(--color-monet-ink);
+            font-family: var(--font-sans);
+            font-size: 0.6875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 5px 12px;
+            border-radius: var(--radius-monet-pill);
+            cursor: pointer;
+        }
+
+        .dir-pill-btn.dir-pill-active {
+            border-color: var(--color-monet-link);
+            background: var(--color-monet-link);
+            color: #ffffff;
+        }
+
+        .clear-filter-btn {
+            font-family: var(--font-sans);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--color-monet-link);
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0 0 0 6px;
+        }
+
+        /* =================================================================
+         * MAP CANVAS & UNCLUTTERED MINIMAL LABELS / CURVES
+         * ================================================================= */
+        .map-wrapper {
+            position: relative;
+            width: 100%;
+            height: 820px;
+            border-radius: var(--radius-monet-card);
+            border: 1px solid var(--color-monet-border);
+            overflow: hidden;
+            background: var(--color-monet-section);
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        .leaflet-container img {
+            max-width: none !important;
+            vertical-align: baseline !important;
+        }
+
+        @keyframes dashFlow {
+            to {
+                stroke-dashoffset: -28;
+            }
+        }
+
+        path.correspondence-arc {
+            cursor: pointer;
+            transition: opacity 0.15s;
+        }
+
+        path.arc-animated {
+            animation: dashFlow 1.45s linear infinite;
+        }
+
+        /* Uncluttered frameless text-halo labels (replaces large pill boxes) */
+        .leaflet-tooltip.minimal-permanent-tooltip {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            pointer-events: none;
+        }
+
+        .leaflet-tooltip.minimal-permanent-tooltip::before {
+            display: none !important;
+        }
+
+        .minimal-place-label {
+            font-family: var(--font-serif);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--color-monet-ink);
+            white-space: nowrap;
+            text-shadow:
+                -1.5px -1.5px 0 #fefbf4,
+                 1.5px -1.5px 0 #fefbf4,
+                -1.5px  1.5px 0 #fefbf4,
+                 1.5px  1.5px 0 #fefbf4,
+                 0px    0px   5px #fefbf4;
+        }
+
+        .minimal-place-label-hub {
+            font-size: 1.08rem;
+            color: #124574;
+        }
+
+        /* Tiny frameless directional chevron on Bézier curves */
+        .curve-chevron-icon {
+            background: transparent;
+            border: none;
+            pointer-events: none;
+        }
+
+        .curve-chevron {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 14px;
+            height: 14px;
+            font-size: 10px;
+            line-height: 1;
+            text-shadow:
+                -1px -1px 0 #fefbf4,
+                 1px -1px 0 #fefbf4,
+                -1px  1px 0 #fefbf4,
+                 1px  1px 0 #fefbf4;
+            opacity: 0.88;
+        }
+
+        /* Optional compact count badge if user turns on "Show route count badges" */
+        .curve-midpoint-icon {
+            background: transparent;
+            border: none;
+        }
+
+        .curve-badge-compact {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 1px 6px;
+            border-radius: var(--radius-monet-pill);
+            font-family: var(--font-sans);
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            border: 1px solid var(--color-monet-page);
+            box-shadow: 0 1px 4px rgba(28, 28, 30, 0.2);
+            white-space: nowrap;
+            cursor: pointer;
+        }
+
+        .curve-arrow {
+            display: inline-block;
+            font-size: 9px;
+            line-height: 1;
+        }
+
+        /* Hover Tooltip for Arcs & Dots */
+        .map-tooltip-title {
+            font-family: var(--font-serif);
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--color-monet-link);
+            margin-bottom: 2px;
+        }
+
+        .map-tooltip-sub {
+            font-size: 0.75rem;
+            color: var(--color-monet-text);
+            line-height: 1.35;
+        }
+
+        .map-tooltip-hint {
+            font-size: 0.6875rem;
+            color: var(--color-monet-link);
+            margin-top: 3px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        /* Floating Map Legend */
+        .map-legend {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(254, 251, 244, 0.96);
+            backdrop-filter: blur(6px);
+            border: 1px solid var(--color-monet-border);
+            border-radius: var(--radius-monet-card);
+            padding: 14px 16px;
+            box-shadow: 0 4px 16px rgba(28, 28, 30, 0.1);
+            z-index: 500;
+            max-width: 310px;
+            font-size: 0.76rem;
+        }
+
+        .map-legend-title {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--color-monet-ink);
+            margin: 0 0 8px 0;
+        }
+
+        .legend-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 7px;
+            color: var(--color-monet-text);
+        }
+
+        .legend-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .legend-dot-hub {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            background: var(--primary-crimson);
+            border: 2px solid var(--color-monet-page);
+            box-shadow: 0 0 0 2px rgba(205, 50, 56, 0.32);
+            flex-shrink: 0;
+        }
+
+        .legend-dot-connected {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            background: var(--color-monet-deep-blue);
+            border: 2px solid var(--color-monet-page);
+            flex-shrink: 0;
+        }
+
+        .legend-dot-single {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--color-monet-text-secondary);
+            border: 1.5px solid var(--color-monet-page);
+            flex-shrink: 0;
+        }
+
+        .legend-line-primary {
+            width: 22px;
+            height: 3px;
+            background: var(--outbound-blue);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        .legend-line-reverse {
+            width: 22px;
+            height: 3px;
+            background: var(--inbound-ochre);
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+
+        /* =================================================================
+         * 5. SOURCES & TYPESENSE INSPECTOR FOOTER
+         * ================================================================= */
+        .sources-section {
+            max-width: 1740px;
+            margin: 0 auto;
+            padding: 40px 6vw 64px 6vw;
+            border-top: 1px solid var(--color-monet-border);
+        }
+
+        .sources-heading {
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            line-height: 1.2;
+            font-weight: 500;
+            margin: 0;
+            color: var(--color-monet-ink);
+        }
+
+        .sources-desc {
+            color: var(--color-monet-text-secondary);
+            font-size: 0.95rem;
+            margin: 4px 0 18px 0;
+        }
+
+        details.ts-inspector summary {
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--color-monet-link);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .ts-code {
+            margin: 12px 0 0 0;
+            padding: 16px 18px;
+            background: var(--color-monet-section);
+            color: var(--color-monet-ink);
+            border: 1px solid var(--color-monet-border);
+            border-radius: var(--radius-monet-card);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+        }
+    </style>
+</head>
+<body>
+    <!-- 1. SiteHeader (Matching `SiteHeader.tsx`) -->
+    <header class="site-header">
+        <a href="#" class="site-brand">
+            <svg preserveAspectRatio="none" overflow="visible" width="115" height="53" viewBox="0 0 115 53" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <g>
+                    <path d="M105.323 4.63097C105.822 5.14339 105.938 5.35604 106.635 5.58143C108.347 5.10403 107.631 3.60214 108.791 3.19523C109.442 2.96684 110.773 2.95464 111.438 3.28389C111.496 3.72064 111.56 4.15668 111.627 4.59238C112.837 4.86973 112.84 4.46795 114.275 4.02374C113.274 7.78356 109.748 11.3711 107.872 14.8877C107.504 15.4932 106.685 15.7129 106.291 16.2673C106.142 16.4777 106.135 17.9021 106.132 17.9047C103.222 19.6164 102.276 21.5388 100.381 23.8741C100.231 24.059 100.113 24.1749 99.9765 24.3928L99.7671 24.4761C97.9066 26.4469 96.7142 29.6944 94.6953 31.1062C93.4625 30.3084 93.8109 30.4733 93.1992 29.0133C90.8627 28.4176 90.8872 30.4307 88.577 30.7436L87.729 30.1735C87.9905 29.4812 90.2608 27.7415 91.258 26.5591L91.2668 25.8689C92.5508 24.9706 96.4667 20.4946 95.935 19.1957L95.2611 19.0909L94.9003 19.6039L94.4517 19.6189L94.3267 19.2233C94.6189 18.7128 95.2596 18.4644 95.8329 18.1568L95.2403 17.772L95.2264 17.0533L95.7383 16.7747L96.1906 17.1632L96.5343 17.0872L96.2529 16.678L96.8182 16.5126C97.532 16.7905 97.7773 16.9472 98.5381 16.9448C99.3215 16.1897 99.3317 16.4088 99.4658 15.5398C98.8383 14.4588 97.5134 14.5723 96.3831 14.5337C96.494 14.3928 98.32 12.7047 98.4448 12.6119C99.5655 11.776 104.74 4.85848 105.323 4.63097Z" fill="#19599A"/>
+                    <path d="M10.4745 34.6945C10.5347 34.6275 11.0936 33.9725 11.0936 33.9725C13.5323 33.6765 17.0118 31.6199 19.3069 32.9628C19.842 34.8506 17.3845 36.8793 16.9886 39.0065L16.4943 39.2478C16.8915 40.5363 17.4531 39.3871 17.3296 41.1596C17.1615 43.4852 20.2422 45.2056 22.8122 45.1133C23.5555 45.1461 24.3255 45.1355 25.0244 45.3359C24.3683 46.6522 22.5076 45.6262 21.6848 46.4164L21.8063 46.8927C22.2942 46.9351 22.6257 46.9642 23.1093 46.9711C25.5493 47.0054 24.6645 47.9032 27.6091 47.6288L27.422 48.2098C25.8661 48.7993 23.619 48.7479 21.8887 48.7676C19.3666 49.279 17.7396 49.2136 15.281 48.6014C6.60653 46.441 10.033 40.8156 8.47015 38.295C7.72716 38.1761 7.67835 38.2091 6.92926 38.3837L6.67669 39.0607C4.18497 40.705 4.97719 42.7328 1.84931 42.9325C-0.541922 42.1865 -0.385209 39.6062 1.02183 38.1744C2.25676 36.9175 4.01525 36.7094 5.48666 35.9179L5.71032 35.7942C8.88633 35.3471 6.98026 34.5589 10.4745 34.6945Z" fill="#19599A"/>
+                    <path d="M63.4094 21.9702C65.2509 21.5326 67.1284 21.2422 68.6852 22.4167C67.4805 22.5832 63.2167 26.7157 62.187 27.7624C61.5016 28.4587 59.5308 28.5632 59.0274 29.006C54.9093 32.6301 53.6024 34.169 48.235 36.4825C47.2282 38.2342 49.1436 37.4794 45.6401 39.0839C44.6813 39.5234 43.8738 40.977 42.4538 41.8162C39.4884 43.5693 30.8662 47.6653 27.6091 47.6288C24.6645 47.9032 25.5493 47.0054 23.1093 46.9711C22.6257 46.9642 22.2942 46.9351 21.8063 46.8927L21.6848 46.4164C22.5076 45.6262 24.3683 46.6522 25.0244 45.3359C24.3255 45.1355 23.5555 45.1461 22.8122 45.1133C25.7579 45.066 31.5245 44.4788 33.785 42.6267C35.058 41.5846 36.2646 40.0301 37.6789 39.2072C39.5218 38.1373 41.689 37.4533 43.46 36.2829C46.3457 34.3802 62.2203 22.7132 63.2256 22.4574L63.4094 21.9702Z" fill="#19599A"/>
+                    <path d="M62.0716 36.2219L62.6652 36.1357L64.1713 35.8397C65.1097 36.4076 64.8808 36.0998 65.13 36.9579C64.5884 37.6667 63.9564 38.281 64.1049 39.1103L64.2946 39.2891C65.0188 39.9849 65.1389 40.1288 65.2416 41.086C63.7845 41.9349 63.2046 42.7127 63.6178 44.2065C64.5474 44.4055 64.9224 45.0074 65.4619 45.7783L66.2536 46.247C65.458 47.4916 62.2686 49.9361 61.0963 51.1051L60.6103 51.215L60.4323 51.787L57.6646 53C56.588 52.5929 54.1828 51.2229 53.4086 50.4294C53.4654 49.6767 61.1721 37.0474 61.8434 36.7839L62.0716 36.2219Z" fill="#19599A"/>
+                </g>
+            </svg>
+            <span>The Monet Letters Project</span>
+        </a>
+
+        <div class="header-center-picker">
+            <label class="place-picker-label" for="focus-place-select">
+                <span>Highlight Place:</span>
+                <select id="focus-place-select" class="place-select"></select>
+            </label>
+        </div>
+
+        <nav class="site-nav" aria-label="Main navigation">
+            <ul class="site-nav-links">
+                <li><a href="#">Letters</a></li>
+                <li><a href="#">Explore</a></li>
+                <li><a href="#" class="active">All-Places Map</a></li>
+            </ul>
+            <a href="./place-letters-map.html" class="view-switcher-pill">
+                &larr; Single-Place View (Rouen)
+            </a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Map Explorer Section -->
+        <section class="explorer-section" aria-label="All places correspondence network explorer">
+            <!-- `bg-monet-panel` Tab Bar for Viewport Presets & Label Clutter Control -->
+            <nav class="monet-tab-bar" aria-label="Map viewport and label density">
+                <div class="preset-group" role="group">
+                    <button type="button" id="view-normandy-btn" class="preset-btn preset-active">
+                        Seine Valley, Normandy &amp; Paris Cluster
+                    </button>
+                    <button type="button" id="view-europe-btn" class="preset-btn">
+                        Full Europe Overview (All 24 Places)
+                    </button>
+                </div>
+
+                <div class="label-density-bar" role="radiogroup" aria-label="Map label density">
+                    <span class="label-density-title">Map Labels:</span>
+                    <label class="radio-pill">
+                        <input type="radio" name="label-mode" value="hubs" checked />
+                        <span>Major Hubs Only (Minimal)</span>
+                    </label>
+                    <label class="radio-pill">
+                        <input type="radio" name="label-mode" value="hover" />
+                        <span>Hover Only (Zero Clutter)</span>
+                    </label>
+                    <label class="radio-pill">
+                        <input type="radio" name="label-mode" value="all" />
+                        <span>All 24 Place Names</span>
+                    </label>
+                </div>
+            </nav>
+
+            <!-- Horizontal Checkboxes & Optional Focused-Place Filter Above Full-Width Map -->
+            <div class="map-controls-bar">
+                <div class="ux-options-grid">
+                    <label class="ux-option-row">
+                        <input type="checkbox" id="toggle-chevrons" checked />
+                        <span>
+                            <strong>Show subtle directional chevrons</strong> on B&eacute;zier curves
+                        </span>
+                    </label>
+                    <label class="ux-option-row">
+                        <input type="checkbox" id="toggle-midpoint-badges" />
+                        <span>
+                            <strong>Show count badges on curves</strong> (off by default to reduce clutter)
+                        </span>
+                    </label>
+                    <label class="ux-option-row">
+                        <input type="checkbox" id="toggle-single-places" checked />
+                        <span>
+                            <strong>Show single-endpoint places</strong> (10 places where the other letter endpoint is unspecified)
+                        </span>
+                    </label>
+                    <label class="ux-option-row">
+                        <input type="checkbox" id="toggle-infer-giverny" />
+                        <span>
+                            <strong>UX Exploration:</strong> Infer <em>Giverny</em> for Rouen &rarr; Alice Hosched&eacute; letters
+                        </span>
+                    </label>
+                    <label class="ux-option-row">
+                        <input type="checkbox" id="toggle-animate-flow" checked />
+                        <span>
+                            <strong>Animate directional flow</strong> along curved lines
+                        </span>
+                    </label>
+                    <label class="ux-option-row">
+                        <input type="checkbox" id="toggle-db-stubs" checked />
+                        <span>
+                            <strong>Include 6 Rouen DB Stub Letters</strong>
+                        </span>
+                    </label>
+                </div>
+
+                <!-- Focused Place Banner (shown when a user clicks a place dot or selects a place in the header) -->
+                <div id="focus-place-banner" class="focus-place-banner">
+                    <div class="focus-place-top">
+                        <span id="focus-place-name" class="focus-place-title">Rouen</span>
+                        <span id="focus-place-stats" class="focus-place-sub"></span>
+                    </div>
+                    <div class="focus-dir-pills">
+                        <button type="button" class="dir-pill-btn dir-pill-active" data-focus-dir="BOTH">
+                            Both Directions
+                        </button>
+                        <button type="button" class="dir-pill-btn" data-focus-dir="OUT">
+                            Sent From Only
+                        </button>
+                        <button type="button" class="dir-pill-btn" data-focus-dir="IN">
+                            Sent To Only
+                        </button>
+                        <button type="button" id="clear-focus-place-btn" class="clear-filter-btn">
+                            Show Full Network
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Full-Width Leaflet Map Card -->
+            <div class="map-wrapper">
+                <div id="map"></div>
+
+                <div class="map-legend">
+                    <h4 class="map-legend-title">All-Places Network Legend</h4>
+                    <div class="legend-row">
+                        <span class="legend-dot-hub"></span>
+                        <span><strong>Major Correspondence Hub</strong> (Giverny, Paris, Rouen, London)</span>
+                    </div>
+                    <div class="legend-row">
+                        <span class="legend-dot-connected"></span>
+                        <span><strong>Connected Place</strong> (has place-to-place route curve)</span>
+                    </div>
+                    <div class="legend-row">
+                        <span class="legend-dot-single"></span>
+                        <span><strong>Single-Endpoint Place</strong> (other endpoint unspecified)</span>
+                    </div>
+                    <div class="legend-row">
+                        <span class="legend-line-primary"></span>
+                        <span><strong>Primary Directed Route</strong> (or <em>Sent From</em> when focused)</span>
+                    </div>
+                    <div class="legend-row">
+                        <span class="legend-line-reverse"></span>
+                        <span><strong>Reverse Counterpart Route</strong> (or <em>Sent To</em> when focused)</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Sources & Typesense Query Section -->
+        <section class="sources-section" aria-label="Typesense query parameters">
+            <h2 class="sources-heading">Typesense Network Query</h2>
+            <p class="sources-desc">
+                Query parameters used to retrieve all place-linked correspondence across the collection.
+            </p>
+            <details class="ts-inspector" open>
+                <summary>View Typesense Query Parameters</summary>
+                <pre id="ts-query-code" class="ts-code"></pre>
+            </details>
+        </section>
+    </main>
+
+    <!-- Leaflet 1.9.4 JS -->
+    <script
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        crossorigin=""
+    ></script>
+    <!-- Pre-extracted Typesense Dataset (shared with `place-letters-map.html`) -->
+    <script src="./place-letters-data.js"></script>
+    <!-- All-Places Network Map Logic -->
+    <script src="./all-places-letters-map.js"></script>
+</body>
+</html>
